@@ -18,7 +18,7 @@ parser.add_argument('--host', type=str, default='localhost',
                     help='The host to connect to the server on')
 parser.add_argument('--room', type=str, default='my-new-room',
                     help='The room to connect to')
-parser.add_argument('--simulations', type=int, default=1000)
+parser.add_argument('--simulations', type=int, default=2000)
 
 parser.add_argument('--username', type=str, default='bot',
                     help='The username for this bot (make sure it\'s unique)')
@@ -42,14 +42,13 @@ def card_name(card: pokerTypes.Card):
 # Use kelly criterion to bet based on the win probability
 class KellyCriterion(Bot):
     def act(self, state, hand):
-        prob = self.win_prob(state, hand)
+        p = self.win_prob(state, hand)
         me = None
         self.my_id = 'bread'
         for player in state.players:
             if player.id == self.my_id:
                 me = player
                 break
-        p = prob
 
         b = len(state.players)
 
@@ -58,9 +57,11 @@ class KellyCriterion(Bot):
 
         cost_to_play = min(state.target_bet-me.current_bet, me.stack)
 
-        if raise_to > state.target_bet:
+        if me.stack==0:
+            return {'type': 'raise', 'amount': 200}
+        elif raise_to > state.target_bet:
             return {'type': 'raise', 'amount': raise_to-state.target_bet}
-        elif raise_to >= cost_to_play or cost_to_play == 0:
+        elif raise_to >= cost_to_play:
             return {'type': 'call'}
         print('fold')
         return {'type': 'fold'}
@@ -75,6 +76,7 @@ class KellyCriterion(Bot):
     def start_game(self, my_id):
         self.my_id = my_id
         print('start game', my_id)
+
     def win_prob(self, state: pokerTypes.PokerSharedState, hand: Tuple[pokerTypes.Card, pokerTypes.Card]):
         out = 0
         hand = [
