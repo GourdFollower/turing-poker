@@ -69,6 +69,12 @@ class TemplateBot(Bot):
                 me = player
                 break
 
+        opp = None
+        for player in state.players:
+            if player.id != self.my_id:
+                opp = player
+                break
+
         print("pot is", state.pot, "i have", me.stack)
 
 
@@ -97,13 +103,15 @@ class TemplateBot(Bot):
 
         print('my stack:', me.stack, raise_to, p, ''.join(map(card_name, hand)), ''.join(map(card_name, state.cards)))
 
-        if me.stack==0:
+        if opp.stack==0:
+            return {'type': 'call'}
+        elif me.stack==0:
             print('raise 200')
-            return {'type': 'raise', 'amount': 200}
+            return {'type': 'raise', 'amount': 800}
         elif raise_to > state.target_bet:
             print('raise ', raise_to-state.target_bet)
             return {'type': 'raise', 'amount': raise_to-state.target_bet}
-        elif raise_to >= cost_to_play-5:
+        elif raise_to >= cost_to_play or cost_to_play <= 15:
             print('call')
             return {'type': 'call'}
         print('fold')
